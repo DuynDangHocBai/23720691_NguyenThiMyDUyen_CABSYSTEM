@@ -268,9 +268,8 @@ Dưới đây là danh sách chi tiết các Yêu cầu Chức năng (FR) đư�
 
 ---
 
-## 10. Entity Relationship Diagram (Mô hình Dữ liệu ERD)
-
-### 10.1. Sơ đồ Mối quan hệ Thực thể (Mermaid ERD)
+## 10. Data modeling 
+**Mô hình Dữ liệu ERD**
 
 ```mermaid
 erDiagram
@@ -333,3 +332,54 @@ erDiagram
         decimal amount
         string payment_method "CASH / E_WALLET / CREDIT_CARD"
         string payment_status "PENDING
+```
+## 11. Use Cases 
+*** Use Case Diagram
+
+```mermaid
+graph LR
+    actor KH as Khách hàng
+    actor TX as Tài xế
+    actor NVVH as Nhân viên Vận hành
+
+    subgraph CAB_System [Hệ thống CAB System]
+        %% Khách hàng Use Cases
+        UC01(UC01: Đăng ký / Đăng nhập)
+        UC02(UC02: Tạo yêu cầu Đặt xe)
+        UC03(UC03: Theo dõi Chuyến đi & ETA)
+        UC04(UC04: Thanh toán Chuyến đi)
+        UC05(UC05: Đánh giá & Phản hồi)
+        UC06(UC06: Hủy chuyến đi)
+
+        %% Tài xế Use Cases
+        UC07(UC07: Bật/Tắt Trạng thái Sẵn sàng)
+        UC08(UC08: Nhận / Từ chối Chuyến)
+        UC09(UC09: Cập nhật Trạng thái Tiến trình)
+        
+        %% Admin / Operator Use Cases
+        UC10(UC10: Giám sát Chuyến đi Real-time)
+        UC11(UC11: Can thiệp & Xử lý Sự cố)
+        UC12(UC12: Xem Báo cáo & Thống kê)
+    end
+
+    %% Mối quan hệ Khách hàng
+    KH --> UC01
+    KH --> UC02
+    KH --> UC03
+    KH --> UC04
+    KH --> UC05
+    KH --> UC06
+
+    %% Mối quan hệ Tài xế
+    TX --> UC01
+    TX --> UC07
+    TX --> UC08
+    TX --> UC09
+    TX --> UC06
+
+    %% Mối quan hệ NVVH
+    NVVH --> UC01
+    NVVH --> UC10
+    NVVH --> UC11
+    NVVH --> UC12
+```
