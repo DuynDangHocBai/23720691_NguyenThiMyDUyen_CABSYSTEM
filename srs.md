@@ -102,8 +102,9 @@ sequenceDiagram
         HT-->>KH: Thông báo không tìm thấy tài xế phù hợp
     end
 ```
+
 ### 6.2. Quy trình Thực hiện Chuyến đi & Thanh toán
-```
+```mermaid
 sequenceDiagram
     autonumber
     actor KH as Khách hàng
