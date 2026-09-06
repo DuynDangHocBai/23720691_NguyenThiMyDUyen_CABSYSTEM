@@ -383,3 +383,17 @@ graph LR
     NVVH --> UC11
     NVVH --> UC12
 ```
+---
+## 12. Acceptance Criteria (Tiêu chí Chấp nhận - AC)
+
+### 12.1. Bảng Tiêu chí Chấp nhận theo Module
+
+| AC ID | Feature / Use Case | Given (Điều kiện tiên quyết) | When (Hành động kích hoạt) | Then (Kết quả kỳ vọng) |
+| :--- | :--- | :--- | :--- | :--- |
+| **AC01** | Đặt xe & Phân công (Booking) | Khách hàng nhập đủ Điểm đón, Điểm đến, Phương thức thanh toán hợp lệ. | Khách hàng nhấn nút **"Đặt xe"**. | • Chuyến đi tạo ở trạng thái `PENDING`.<br>• Gửi đề xuất tới Tài xế gần nhất trong bán kính 3km (đếm ngược 15s).<br>• Khi Tài xế bấm "Chấp nhận", chuyến đổi sang `ACCEPTED`, hiển thị thông tin Tài xế cho Khách. |
+| **AC02** | Xử lý Timeout Tài xế (Matching Timeout) | Tài xế nhận thông báo đề xuất chuyến kèm đồng hồ đếm ngược 15 giây. | Tài xế không thao tác (Chấp nhận/Từ chối) sau **15 giây**. | • Hệ thống ghi nhận "Từ chối do Timeout".<br>• Tự động chuyển tiếp yêu cầu đặt xe tới Tài xế tiếp theo.<br>• Tài xế cũ không nhận lại thông báo cho chính chuyến đi đó trong lượt tìm kiếm này. |
+| **AC03** | Khách hàng Hủy chuyến (Cancel Booking) | Chuyến đi ở trạng thái `ACCEPTED` (Tài xế đang đến đón) < 2 phút. | Khách hàng nhấn nút **"Hủy chuyến"** và chọn lý do. | • Trạng thái chuyến chuyển sang `CANCELLED`.<br>• Miễn phí phạt hủy chuyến.<br>• Gửi Push Notification thông báo Khách đã hủy chuyến tới App Tài xế. |
+| **AC04** | Theo dõi Real-time & ETA | Chuyến đi ở trạng thái `IN_PROGRESS` (Đang di chuyển). | App Tài xế gửi tọa độ GPS định kỳ mỗi **3 - 5 giây**. | • Biểu tượng xe Tài xế di chuyển mượt mà trên bản đồ App Khách hàng.<br>• Thời gian dự kiến đến (ETA) và khoảng cách tự động tính toán & cập nhật liên tục. |
+| **AC05** | Thanh toán Điện tử (E-Payment) | Chuyến đi hoàn thành, Khách hàng chọn phương thức thanh toán "Ví điện tử". | Tài xế nhấn **"Hoàn thành chuyến đi"**. | • Hệ thống tự động trừ tiền qua Cổng thanh toán.<br>• Khi trả về `SUCCESS`, chuyến chuyển sang `COMPLETED`, `payment_status` = `SUCCESS`.<br>• Xuất Hóa đơn điện tử gửi về App Khách và thông báo "Đã nhận tiền" cho Tài xế. |
+| **AC06** | Xử lý Thanh toán Lỗi (Payment Failure) | Khách hàng chọn Ví điện tử nhưng tài khoản không đủ số dư hoặc lỗi kết nối. | Cổng thanh toán trả về kết quả `FAILED`. | • Hệ thống hiển thị thông báo lỗi thanh toán trên App Khách hàng.<br>• Cho phép Khách chọn phương thức thay thế (*Chuyển sang Tiền mặt* hoặc *Ví khác*).<br>• Chuyển trạng thái `COMPLETED` chỉ sau khi xác nhận thanh toán thành công. |
+| **AC07** | Can thiệp Hủy chuyến kẹt (Admin Intervention) | Chuyến đi bị rớt kết nối GPS > 3 phút, hiển thị cảnh báo trên màn hình Admin. | Nhân viên vận hành chọn chuyến đi, nhập lý do và nhấn **"Hủy chuyến thủ công"**. | • Trạng thái chuyến chuyển lập tức sang `CANCELLED`.<br>• Giải phóng trạng thái cho Khách hàng để đặt chuyến mới.<br>• Tự động lưu chi tiết hành động can thiệp vào `Audit Log`. |
