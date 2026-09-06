@@ -262,7 +262,6 @@ Dưới đây là danh sách chi tiết các Yêu cầu Chức năng (FR) đư�
 
 ## 10. Data modeling 
 **Mô hình Dữ liệu ERD**
-
 ```mermaid
 erDiagram
     USERS ||--o{ TRIPS : "places (Customer)"
@@ -278,8 +277,8 @@ erDiagram
         string password_hash
         string full_name
         string email
-        string role "CUSTOMER / DRIVER / OPERATOR / ADMIN"
-        string status "ACTIVE / INACTIVE / BLOCKED"
+        string role
+        string status
         timestamp created_at
     }
 
@@ -288,7 +287,7 @@ erDiagram
         bigint user_id FK
         string license_number
         string identity_card_number
-        string status "OFFLINE / READY / ON_TRIP / SUSPENDED"
+        string status
         decimal rating_avg
         timestamp created_at
     }
@@ -297,7 +296,7 @@ erDiagram
         bigint id PK
         bigint driver_id FK
         string license_plate
-        string vehicle_type "4-SEATER / 7-SEATER / BIKE"
+        string vehicle_type
         string model
         string color
     }
@@ -313,7 +312,7 @@ erDiagram
         decimal dropoff_lat
         decimal dropoff_lng
         decimal fare_amount
-        string status "PENDING / ACCEPTED / ARRIVED / IN_PROGRESS / COMPLETED / CANCELLED"
+        string status
         timestamp created_at
         timestamp completed_at
     }
@@ -322,36 +321,50 @@ erDiagram
         bigint id PK
         bigint trip_id FK
         decimal amount
-        string payment_method "CASH / E_WALLET / CREDIT_CARD"
-        string payment_status "PENDING
+        string payment_method
+        string payment_status
+        string transaction_id
+        timestamp paid_at
+    }
+
+    RATINGS {
+        bigint id PK
+        bigint trip_id FK
+        int score
+        text comment
+        timestamp created_at
+    }
 ```
+---
+
 ## 11. Use Cases 
 *** Use Case Diagram
 
 ```mermaid
 graph LR
-    actor KH as Khách hàng
-    actor TX as Tài xế
-    actor NVVH as Nhân viên Vận hành
+    %% Khai báo Actors
+    KH["👤 Khách hàng"]
+    TX["🚗 Tài xế"]
+    NVVH["💻 Nhân viên Vận hành"]
 
     subgraph CAB_System [Hệ thống CAB System]
         %% Khách hàng Use Cases
-        UC01(UC01: Đăng ký / Đăng nhập)
-        UC02(UC02: Tạo yêu cầu Đặt xe)
-        UC03(UC03: Theo dõi Chuyến đi & ETA)
-        UC04(UC04: Thanh toán Chuyến đi)
-        UC05(UC05: Đánh giá & Phản hồi)
-        UC06(UC06: Hủy chuyến đi)
+        UC01("(UC01: Đăng ký / Đăng nhập)")
+        UC02("(UC02: Tạo yêu cầu Đặt xe)")
+        UC03("(UC03: Theo dõi Chuyến đi & ETA)")
+        UC04("(UC04: Thanh toán Chuyến đi)")
+        UC05("(UC05: Đánh giá & Phản hồi)")
+        UC06("(UC06: Hủy chuyến đi)")
 
         %% Tài xế Use Cases
-        UC07(UC07: Bật/Tắt Trạng thái Sẵn sàng)
-        UC08(UC08: Nhận / Từ chối Chuyến)
-        UC09(UC09: Cập nhật Trạng thái Tiến trình)
+        UC07("(UC07: Bật/Tắt Trạng thái Sẵn sàng)")
+        UC08("(UC08: Nhận / Từ chối Chuyến)")
+        UC09("(UC09: Cập nhật Trạng thái Tiến trình)")
         
         %% Admin / Operator Use Cases
-        UC10(UC10: Giám sát Chuyến đi Real-time)
-        UC11(UC11: Can thiệp & Xử lý Sự cố)
-        UC12(UC12: Xem Báo cáo & Thống kê)
+        UC10("(UC10: Giám sát Chuyến đi Real-time)")
+        UC11("(UC11: Can thiệp & Xử lý Sự cố)")
+        UC12("(UC12: Xem Báo cáo & Thống kê)")
     end
 
     %% Mối quan hệ Khách hàng
@@ -408,30 +421,30 @@ graph LR
 ---
 ## 13. Traceability Matrix (Bảng Truy vết Nghiệp vụ & Kỹ thuật)
 
-Bảng truy vết tổng hợp mối quan hệ xuyên suốt từ Mục tiêu Kinh doanh (BG) $\rightarrow$ Yêu cầu Nghiệp vụ (BR) $\rightarrow$ Module MVP $\rightarrow$ Yêu cầu Chức năng (FR) $\rightarrow$ Use Case (UC) $\rightarrow$ Tiêu chí Chấp nhận (AC):
+Bảng truy vết đảm bảo tính khép kín và nhất quán từ Mục tiêu Kinh doanh (BG) cho đến Tiêu chí Nghiệm thu (AC):
 
-| Mã BG | Tên Mục tiêu Kinh doanh | Mã BR | Mã Module | Mã FR | Mã UC | Mã AC |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **BG01** | Tự động hóa & Mở rộng Vận hành | **BR02** | **MOD02** | **FR02.2** | UC02 | **AC-FR02.2** |
-| | | | | **FR02.4** | UC08 | **AC-FR02.4** |
-| **BG02** | Tối ưu Doanh thu & Chuyến đi | **BR02** | **MOD02** | **FR02.1** | UC02 | **AC-FR02.1** |
-| | | | | **FR02.3** | UC08 | **AC-FR02.3** |
-| | | **BR03** | **MOD03** | **FR03.3** | UC06 | **AC-FR03.3** |
-| **BG03** | Nâng cao Trải nghiệm Khách hàng | **BR03** | **MOD03** | **FR03.1** | UC09 | **AC-FR03.1** |
-| | | | | **FR03.2** | UC03 | **AC-FR03.2** |
-| | | | | **FR03.4** | UC03 | **AC-FR03.4** |
-| | | **BR04** | **MOD04** | **FR04.3** | UC04 | **AC-FR04.3** |
-| | | | | **FR04.4** | UC04 | **AC-FR04.4** |
-| **BG04** | Tối ưu Hiệu quả cho Tài xế | **BR01** | **MOD01** | **FR01.3** | UC01 | **AC-FR01.3** |
-| | | **BR02** | **MOD02** | **FR02.3** | UC07, UC08 | **AC-FR02.3** |
-| | | **BR04** | **MOD04** | **FR04.1** | UC09 | **AC-FR04.1** |
-| | | | | **FR04.2** | UC04 | **AC-FR04.2** |
-| **BG05** | Nâng cao Năng lực Quản trị | **BR01** | **MOD01** | **FR01.4** | UC01 | **AC-FR01.4** |
-| | | **BR05** | **MOD06** | **FR06.1** | UC10 | **AC-FR06.1** |
-| | | | | **FR06.2** | UC11 | **AC-FR06.2** |
-| | | **BR06** | **MOD06** | **FR06.3** | UC12 | **AC-FR06.3** |
-| | | | | **FR06.4** | UC05 | **AC-FR06.4** |
-| **BG06** | Kiến trúc Nền tảng Linh hoạt | **BR01** | **MOD01** | **FR01.1** | UC01 | **AC-FR01.1** |
-| | | | | **FR01.2** | UC01 | **AC-FR01.2** |
-| | | **BR04** | **MOD05** | **FR05.1** | UC03, UC09 | **AC-FR05.1** |
-| | | | | **FR05.2** | UC01 | **AC-FR05.2** |
+| Mã BG | Mã BR | Mã BPM (Luồng Quy trình) | Mã FR | Mã UC | Mã AC |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **BG01** | **BR02** | **BPM6.1** (Đặt xe & Điều phối) | **FR02.2** | UC02 | **AC-FR02.2** |
+| | | | **FR02.4** | UC08 | **AC-FR02.4** |
+| **BG02** | **BR02** | **BPM6.1** (Đặt xe & Điều phối) | **FR02.1** | UC02 | **AC-FR02.1** |
+| | | | **FR02.3** | UC08 | **AC-FR02.3** |
+| | **BR03** | **BPM6.4** (Quy trình Hủy chuyến) | **FR03.3** | UC06 | **AC-FR03.3** |
+| **BG03** | **BR03** | **BPM6.2** (Thực hiện Chuyến đi) | **FR03.1** | UC09 | **AC-FR03.1** |
+| | | **BPM6.2** (Thực hiện Chuyến đi) | **FR03.2** | UC03 | **AC-FR03.2** |
+| | | **BPM6.2** (Thực hiện Chuyến đi) | **FR03.4** | UC03 | **AC-FR03.4** |
+| | **BR04** | **BPM6.2** (Thực hiện & Thanh toán) | **FR04.3** | UC04 | **AC-FR04.3** |
+| | | **BPM6.2** (Thực hiện & Thanh toán) | **FR04.4** | UC04 | **AC-FR04.4** |
+| **BG04** | **BR01** | **BPM6.3** (Onboarding Tài xế) | **FR01.3** | UC01 | **AC-FR01.3** |
+| | **BR02** | **BPM6.1** (Đặt xe & Điều phối) | **FR02.3** | UC07, UC08 | **AC-FR02.3** |
+| | **BR04** | **BPM6.2** (Thực hiện & Thanh toán) | **FR04.1** | UC09 | **AC-FR04.1** |
+| | | **BPM6.2** (Thực hiện & Thanh toán) | **FR04.2** | UC04 | **AC-FR04.2** |
+| **BG05** | **BR01** | **BPM6.3** (Onboarding Tài xế) | **FR01.4** | UC01 | **AC-FR01.4** |
+| | **BR05** | **BPM6.5** (Can thiệp Vận hành) | **FR06.1** | UC10 | **AC-FR06.1** |
+| | | **BPM6.5** (Can thiệp Vận hành) | **FR06.2** | UC11 | **AC-FR06.2** |
+| | **BR06** | **BPM6.6** (Đối soát Doanh thu) | **FR06.3** | UC12 | **AC-FR06.3** |
+| | | **BPM6.2** (Thực hiện Chuyến đi) | **FR06.4** | UC05 | **AC-FR06.4** |
+| **BG06** | **BR01** | **BPM6.3** (Onboarding Tài xế) | **FR01.1** | UC01 | **AC-FR01.1** |
+| | | **BPM6.3** (Onboarding Tài xế) | **FR01.2** | UC01 | **AC-FR01.2** |
+| | **BR04** | **BPM6.1, BPM6.2** (Toàn bộ các luồng) | **FR05.1** | UC03, UC09 | **AC-FR05.1** |
+| | | **BPM6.1, BPM6.2** (Toàn bộ các luồng) | **FR05.2** | UC01 | **AC-FR05.2** |
