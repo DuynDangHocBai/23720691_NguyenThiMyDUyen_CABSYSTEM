@@ -53,13 +53,14 @@ quadrantChart
 
 ## 4. Minimum Viable Product (MVP) Modules
 
-1. **Module Quản lý Tài khoản & Định danh (Account & Auth Module):** Đăng ký, đăng nhập, quản lý hồ sơ (Khách hàng, Tài xế) và phân quyền quản trị (Nhân viên vận hành).
-2. **Module Đặt xe & Phân công (Booking & Matching Module):** Tạo chuyến, định vị thời gian thực, thuật toán tự động ghép nối/tìm tài xế gần nhất và xử lý chuyển tiếp khi từ chối.
-3. **Module Quản lý Tiến trình Chuyến đi (Trip Management Module):** Cập nhật/theo dõi trạng thái chuyến đi theo thời gian thực (ETA, vị trí), lịch sử chuyến và đánh giá tài xế.
-4. **Module Tính cước & Thanh toán (Pricing & Payment Module):** Tính tiền tự động, hỗ trợ tiền mặt và tích hợp Payment Gateway bên ngoài xử lý thanh toán điện tử.
-5. **Module Thông báo (Notification Module):** Gửi thông báo tức thì cho Khách hàng/Tài xế theo từng sự kiện của chuyến đi.
-6. **Module Vận hành & Báo cáo (Admin & Analytics Module):** Giao diện quản trị theo dõi chuyến đi, hỗ trợ xử lý sự cố và xuất báo cáo doanh thu, hiệu suất cho Ban giám đốc.
-
+| ID | Tên Module | Mô tả Chức năng chính |
+| :--- | :--- | :--- |
+| **MOD01** | Quản lý Tài khoản & Định danh (*Account & Auth Module*) | Đăng ký, đăng nhập, quản lý hồ sơ (Khách hàng, Tài xế) và phân quyền quản trị (Nhân viên vận hành). |
+| **MOD02** | Đặt xe & Phân công (*Booking & Matching Module*) | Tạo chuyến, định vị thời gian thực, thuật toán tự động ghép nối/tìm tài xế gần nhất và xử lý chuyển tiếp khi từ chối. |
+| **MOD03** | Quản lý Tiến trình Chuyến đi (*Trip Management Module*) | Cập nhật/theo dõi trạng thái chuyến đi theo thời gian thực (ETA, vị trí), lịch sử chuyến và đánh giá tài xế. |
+| **MOD04** | Tính cước & Thanh toán (*Pricing & Payment Module*) | Tính tiền tự động, hỗ trợ tiền mặt và tích hợp Payment Gateway bên ngoài xử lý thanh toán điện tử. |
+| **MOD05** | Thông báo (*Notification Module*) | Gửi thông báo tức thì cho Khách hàng/Tài xế theo từng sự kiện của chuyến đi. |
+| **MOD06** | Vận hành & Báo cáo (*Admin & Analytics Module*) | Giao diện quản trị theo dõi chuyến đi, hỗ trợ xử lý sự cố và xuất báo cáo doanh thu, hiệu suất cho Ban giám đốc. |
 ---
 
 ## 5. Business Requirements (Yêu cầu Nghiệp vụ)
@@ -75,6 +76,8 @@ quadrantChart
 
 ---
 ## 6. Business Process Modeling (Mô hình hóa Quy trình Nghiệp vụ)
+
+### 6.1. Quy trình Đặt xe & Điều phối Tự động
 
 ```mermaid
 sequenceDiagram
@@ -98,6 +101,9 @@ sequenceDiagram
     else Không tìm thấy tài xế
         HT-->>KH: Thông báo không tìm thấy tài xế phù hợp
     end
+```
+### 6.2. Quy trình Thực hiện Chuyến đi & Thanh toán
+```
 sequenceDiagram
     autonumber
     actor KH as Khách hàng
@@ -128,3 +134,4 @@ sequenceDiagram
     end
 
     KH->>HT: Gửi đánh giá & Phản hồi về chuyến đi (Rating/Comment)
+```
