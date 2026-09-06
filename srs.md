@@ -77,7 +77,41 @@ quadrantChart
 ---
 ## 6. Business Process Modeling (Mô hình hóa Quy trình Nghiệp vụ)
 
-### 6.1. Luồng Đặt xe & Điều phối Tự động
+### 6.1. Biểu đồ Tổng quan Toàn bộ Quy trình Nghiệp vụ (Overall Process Map)
+
+```mermaid
+flowchart TD
+    %% Nhóm Onboarding
+    subgraph Onboarding [1. Khởi tạo & Định danh]
+        P1([6.3. Quy trình Đăng ký & Xét duyệt Tài xế])
+    end
+
+    %% Nhóm Chuyến đi
+    subgraph CoreTrip [2. Vòng đời Chuyến đi Cốt lõi]
+        P2([6.1. Luồng Đặt xe & Điều phối Tự động])
+        P3([6.2. Luồng Thực hiện Chuyến đi & Thanh toán])
+        P4([6.4. Quy trình Hủy chuyến đi])
+
+        P2 -->|Chấp nhận chuyến| P3
+        P2 -->|Khách/Tài xế bấm Hủy| P4
+        P3 -->|Phát sinh hủy mid-trip| P4
+    end
+
+    %% Nhóm Vận hành & Tài chính
+    subgraph Operations [3. Quản trị & Tài chính]
+        P5([6.5. Quy trình Hỗ trợ & Can thiệp Vận hành])
+        P6([6.6. Quy trình Đóng soát xét & Đối soát Doanh thu])
+    end
+
+    %% Mối liên kết giữa các quy trình
+    P1 -->|Tài xế sẵn sàng| P2
+    P3 -->|Chuyến đi hoàn thành| P6
+    
+    CoreTrip -.->|Phát sinh sự cố/Giao dịch lỗi| P5
+    P5 -.->|Điều chỉnh cước/Khóa tài khoản| P6
+```
+---
+### 6.2. Luồng Đặt xe & Điều phối Tự động
 
 ```mermaid
 flowchart TD
@@ -99,8 +133,8 @@ flowchart TD
     DriverResponse -- Từ chối / Hết giờ --> ForwardNext[Tự động chuyển tiếp yêu cầu tới tài xế tiếp theo]
     ForwardNext --> CheckFound
 ```
-
-### 6.2. Quy trình Thực hiện Chuyến đi & Thanh toán
+---
+### 6.3. Quy trình Thực hiện Chuyến đi & Thanh toán
 ```mermaid
 flowchart TD
     Transition([Bắt đầu thực hiện chuyến đi]) --> DriverArrive[Tài xế cập nhật: Đã đến điểm đón]
@@ -132,3 +166,170 @@ flowchart TD
     IssueInvoice --> Rating[Khách hàng đánh giá & phản hồi chất lượng dịch vụ]
     Rating --> EndTrip([Kết thúc chuyến đi])
 ```
+---
+## 7. Functional Requirements (Yêu cầu Chức năng)
+
+Dưới đây là danh sách chi tiết các Yêu cầu Chức năng (FR) được phân chia theo 6 Module MVP của hệ thống CAB System.
+
+### 7.1. MOD01 - Module Quản lý Tài khoản & Định danh (Account & Auth)
+
+| ID | Tên Chức năng | Đối tượng | Mô tả Chi tiết | Yêu cầu Nghiệp vụ |
+| :--- | :--- | :--- | :--- | :--- |
+| **FR01.1** | Đăng ký & Đăng nhập | KH, TX | Cho phép người dùng đăng ký, đăng nhập bằng Số điện thoại/OTP hoặc Email/Mật khẩu. | BR01 |
+| **FR01.2** | Quản lý Hồ sơ Cá nhân | KH, TX | Cho phép xem và cập nhật thông tin cá nhân (Họ tên, Ảnh đại diện, Email, Số điện thoại). | BR01 |
+| **FR01.3** | Quản lý Hồ sơ Phương tiện | TX | Cho phép Tài xế tải lên và cập nhật giấy tờ xe, bằng lái, biển số xe và loại xe. | BR01 |
+| **FR01.4** | Phân quyền Truy cập (RBAC) | NVVH, ADMIN | Áp dụng phân quyền chặt chẽ theo vai trò (Role-based Access Control) cho Nhân viên vận hành và Admin. | BR01 |
+
+---
+
+### 7.2. MOD02 - Module Đặt xe & Phân công (Booking & Matching)
+
+| ID | Tên Chức năng | Đối tượng | Mô tả Chi tiết | Yêu cầu Nghiệp vụ |
+| :--- | :--- | :--- | :--- | :--- |
+| **FR02.1** | Tạo Yêu cầu Đặt xe | KH | Cho phép Khách hàng chọn điểm đón/điểm đến trên bản đồ, chọn loại dịch vụ và tạo chuyến đi. | BR02 |
+| **FR02.2** | Định vị GPS & Tìm xe | Hệ thống | Tự động xác định tọa độ GPS, tìm kiếm và đề xuất các Tài xế đang ở trạng thái "Sẵn sàng" gần nhất. | BR02 |
+| **FR02.3** | Nhận / Từ chối Chuyến | TX | Gửi thông báo nhận chuyến tới Tài xế với đếm ngược thời gian; cho phép Tài xế bấm Chấp nhận hoặc Từ chối. | BR02 |
+| **FR02.4** | Tự động Chuyển tiếp | Hệ thống | Tự động điều phối yêu cầu sang Tài xế tiếp theo nếu Tài xế trước từ chối hoặc hết thời gian phản hồi (Timeout). | BR02 |
+
+---
+
+### 7.3. MOD03 - Module Quản lý Tiến trình Chuyến đi (Trip Management)
+
+| ID | Tên Chức năng | Đối tượng | Mô tả Chi tiết | Yêu cầu Nghiệp vụ |
+| :--- | :--- | :--- | :--- | :--- |
+| **FR03.1** | Cập nhật Trạng thái | TX | Cho phép Tài xế chuyển đổi các mốc trạng thái chuyến đi (*Đã đến điểm đón*, *Đã đón khách*, *Đang di chuyển*, *Hoàn thành*). | BR03 |
+| **FR03.2** | Theo dõi Real-time & ETA | KH | Hiển thị vị trí thực của Tài xế di chuyển trên bản đồ và cập nhật thời gian dự kiến đến (ETA) liên tục. | BR03 |
+| **FR03.3** | Hủy chuyến đi | KH, TX | Cho phép Khách hàng hoặc Tài xế gửi yêu cầu hủy chuyến đi kèm lý do cụ thể theo quy tắc nghiệp vụ. | BR03 |
+| **FR03.4** | Lịch sử Chuyến đi | KH, TX | Cho phép tra cứu danh sách các chuyến đi đã thực hiện (thời gian, lộ trình, cước phí, trạng thái). | BR01, BR03 |
+
+---
+
+### 7.4. MOD04 - Module Tính cước & Thanh toán (Pricing & Payment)
+
+| ID | Tên Chức năng | Đối tượng | Mô tả Chi tiết | Yêu cầu Nghiệp vụ |
+| :--- | :--- | :--- | :--- | :--- |
+| **FR04.1** | Tự động Tính cước | Hệ thống | Tính toán tổng tiền chuyến đi dựa trên khoảng cách, thời gian di chuyển, loại dịch vụ và phụ phí (nếu có). | BR04 |
+| **FR04.2** | Thanh toán Tiền mặt | KH, TX | Cho phép Khách hàng trả tiền mặt trực tiếp và Tài xế bấm xác nhận đã nhận đủ tiền trên app. | BR04 |
+| **FR04.3** | Thanh toán Điện tử | KH, Hệ thống | Tích hợp Cổng thanh toán (Payment Gateway) cho phép Khách hàng thanh toán qua Ví điện tử/Thẻ/Banking. | BR04 |
+| **FR04.4** | Xuất Hóa đơn Điện tử | Hệ thống | Tự động tạo và gửi hóa đơn/biên nhận thanh toán điện tử cho Khách hàng qua ứng dụng hoặc Email. | BR04 |
+
+---
+
+### 7.5. MOD05 - Module Thông báo (Notification)
+
+| ID | Tên Chức năng | Đối tượng | Mô tả Chi tiết | Yêu cầu Nghiệp vụ |
+| :--- | :--- | :--- | :--- | :--- |
+| **FR05.1** | Inform Push Notification | KH, TX | Gửi thông báo đẩy (Push) tức thì theo thời gian thực tới app khi trạng thái chuyến đi thay đổi. | BR02, BR03 |
+| **FR05.2** | Thông báo SMS Backup | KH | Gửi mã OTP đăng nhập hoặc thông báo quan trọng qua SMS trong trường hợp không nhận được Push. | BR01, BR03 |
+
+---
+
+### 7.6. MOD06 - Module Vận hành & Báo cáo (Admin & Analytics)
+
+| ID | Tên Chức năng | Đối tượng | Mô tả Chi tiết | Yêu cầu Nghiệp vụ |
+| :--- | :--- | :--- | :--- | :--- |
+| **FR06.1** | Giám sát Chuyến đi Real-time| NVVH | Cung cấp màn hình bản đồ trực quan theo dõi toàn bộ các chuyến đi đang diễn ra và vị trí các Tài xế. | BR05 |
+| **FR06.2** | Can thiệp & Hỗ trợ Vận hành| NVVH | Cho phép Nhân viên vận hành hủy chuyến kẹt, gán lại tài xế, điều chỉnh cước phí lỗi hoặc khóa tài khoản vi phạm. | BR05 |
+| **FR06.3** | Báo cáo Thống kê Doanh thu | ADMIN, BGD | Xuất báo cáo tổng quan/chi tiết về doanh thu, số lượng chuyến, tỷ lệ hoàn thành/hủy và chiết khấu theo ngày/tần/tháng. | BR06 |
+| **FR06.4** | Quản lý Đánh giá & Phản hồi | NVVH, ADMIN | Quản lý rating/comment của Khách hàng về Tài xế để xử lý khiếu nại và nâng cao chất lượng dịch vụ. | BR06 |
+
+---
+## 8. Business Rules & Exception Handling (Quy tắc Nghiệp vụ & Xử lý Ngoại lệ)
+
+### 8.1. Business Rules (Quy tắc Nghiệp vụ)
+
+| ID | Quy tắc Nghiệp vụ | Mô tả & Logic Áp dụng | Áp dụng cho |
+| :--- | :--- | :--- | :--- |
+| **BR-RL01** | **Thời gian Phản hồi Nhận chuyến** | Tài xế có tối đa **15 giây** để bấm "Chấp nhận" hoặc "Từ chối" từ khi nhận thông báo. Quá 15 giây không phản hồi, hệ thống coi như "Từ chối" (Timeout). | Booking & Matching |
+| **BR-RL02** | **Bán kính & Số lượng Tìm kiếm** | Ưu tiên quét Tài xế trong bán kính **3km** gần nhất; nếu không có, mở rộng tối đa lên **5km** và đề xuất lần lượt cho tối đa **5 Tài xế** liên tiếp. | Booking & Matching |
+| **BR-RL03** | **Chính sách Hủy chuyến & Phí phạt** | • **Khách hàng:** Hủy miễn phí trong vòng **2 phút** sau khi Tài xế nhận chuyến. Hủy sau 2 phút hoặc khi Tài xế đã tới điểm đón sẽ chịu phí phạt **10,000 VNĐ**.<br>• **Tài xế:** Tự ý hủy chuyến mà không có lý do chính đáng sẽ bị trừ **2 điểm uy tín** và tạm khóa nhận chuyến trong **15 phút**. | Trip Management |
+| **BR-RL04** | **Thời gian Chờ tại Điểm đón** | Tài xế có trách nhiệm đợi Khách hàng tối đa **5 phút** tại điểm đón. Sau 5 phút nếu không liên lạc được Khách, Tài xế có quyền hủy chuyến với lý do *"Khách không xuất hiện"*. | Trip Management |
+| **BR-RL05** | **Tỷ lệ Chiết khấu & Đối soát** | Hệ thống thu phí hoa hồng cố định **15%** trên tổng giá trị cước phí mỗi chuyến đi hoàn thành. Dữ liệu đối soát được chốt tự động vào **23:59:59 hàng ngày**. | Pricing & Payment |
+
+---
+
+### 8.2. Exception Handling (Xử lý Ngoại lệ & Sự cố)
+
+| ID | Kịch bản Ngoại lệ / Sự cố | Nguyên nhân Phát sinh | Phương án Xử lý Tự động & Vận hành |
+| :--- | :--- | :--- | :--- |
+| **BR-EX01** | **Không tìm thấy Tài xế (No Driver Found)** | Không có tài xế sẵn sàng trong bán kính 5km hoặc tất cả tài xế đề xuất đều từ chối/timeout. | Hệ thống hiển thị thông báo gửi Khách hàng: *"Hiện tại các tài xế đều đang bận, vui lòng thử lại sau ít phút"*, đồng thời gợi ý Khách hàng tăng/đổi loại xe hoặc chọn lại điểm đón. |
+| **BR-EX02** | **Mất kết nối GPS / Mất mạng (Connection Lost)** | App Khách hàng hoặc Tài xế bị rớt mạng/mất tín hiệu GPS trong quá trình diễn ra chuyến đi. | • **App Tài xế:** Lưu vết tọa độ offline tạm thời trên thiết bị, tự động đồng bộ lại ngay khi có kết nối.<br>• **Hệ thống:** Nếu mất kết nối > 3 phút, gửi cảnh báo tới màn hình Vận hành (Admin) để NVVH chủ động gọi điện xác minh. |
+| **BR-EX03** | **Thanh toán Điện tử Lỗi (Payment Failure)** | Cổng thanh toán bị timeout, tài khoản Khách hàng không đủ số dư hoặc giao dịch ngân hàng bị chối bỏ. | Hệ thống chuyển trạng thái thanh toán sang *"Thất bại"*, gửi Push Notification yêu cầu Khách hàng chọn phương thức thanh toán thay đổi (Chuyển sang Tiền mặt / Ví khác) để hoàn tất chuyến đi. |
+| **BR-EX04** | **Tranh chấp Cước phí / Sự cố Đường dài** | Xe gặp sự cố kỹ thuật (hỏng xe, va chạm) giữa đường hoặc Lộ trình di chuyển thực tế lệch quá **20%** so với dự kiến. | Tài xế hoặc Khách hàng bấm nút *"Báo cáo Sự cố"* trên App. Hệ thống tạm dừng tính cước tự động, đóng băng giao dịch và chuyển chuyến đi sang trạng thái *"Chờ NVVH xử lý thủ công"*. |
+## 9. Non-Functional Requirements (Yêu cầu Phi chức năng)
+
+| ID | Nhóm Yêu cầu | Tiêu chí & Thông số Kỹ thuật |
+| :--- | :--- | :--- |
+| **NFR01** | **Hiệu năng (Performance)** | • Thời gian phản hồi API < **200ms** cho 95% các tác vụ thông thường.<br>• Thời gian tìm kiếm và đề xuất tài xế gần nhất < **2 giây**.<br>• Độ trễ cập nhật vị trí GPS real-time trên bản đồ từ **3 - 5 giây**. |
+| **NFR02** | **Bảo mật (Security)** | • Mã hóa toàn bộ dữ liệu truyền tải qua **HTTPS/TLS 1.3**.<br>• Xác thực và phân quyền truy cập thông qua **JWT (JSON Web Token)** & OAuth 2.0.<br>• Mã hóa mật khẩu người dùng bằng thuật toán bcrypt/Argon2.<br>• Tuân thủ tiêu chuẩn PCI-DSS (không lưu trữ thông tin thẻ thanh toán nhạy cảm trên hệ thống CAB). |
+| **NFR03** | **Độ tin cậy & Khả dụng (Availability)** | • Thời gian hoạt động của hệ thống (Uptime) đạt tối thiểu **99.9%** (24/7/365).<br>• Tự động sao lưu (Backup) cơ sở dữ liệu định kỳ 1 lần/ngày và lưu trữ tối thiểu 30 ngày. |
+| **NFR04** | **Khả năng mở rộng (Scalability)** | • Kiến trúc Microservices/Modular Monolith hỗ trợ mở rộng chiều ngang (Horizontal Scaling).<br>• Đáp ứng tối thiểu **10,000 người dùng hoạt động đồng thời (DAU)** và xử lý **1,000 chuyến đi/phút** trong giờ cao điểm mà không gây gián đoạn. |
+| **NFR05** | **Tính Dễ sử dụng (Usability)** | • Giao diện di động tối ưu cho thao tác 1 tay, thân thiện trên cả 2 nền tảng iOS và Android.<br>• Hiển thị thông báo trạng thái rõ ràng, hỗ trợ ngôn ngữ Tiếng Việt và Tiếng Anh. |
+
+---
+
+## 10. Entity Relationship Diagram (Mô hình Dữ liệu ERD)
+
+### 10.1. Sơ đồ Mối quan hệ Thực thể (Mermaid ERD)
+
+```mermaid
+erDiagram
+    USERS ||--o{ TRIPS : "places (Customer)"
+    USERS ||--o| DRIVER_PROFILES : "has profile (Driver)"
+    DRIVER_PROFILES ||--o| VEHICLES : "drives"
+    DRIVER_PROFILES ||--o{ TRIPS : "accepts (Driver)"
+    TRIPS ||--|| PAYMENTS : "generates"
+    TRIPS ||--o| RATINGS : "receives"
+
+    USERS {
+        bigint id PK
+        string phone_number
+        string password_hash
+        string full_name
+        string email
+        string role "CUSTOMER / DRIVER / OPERATOR / ADMIN"
+        string status "ACTIVE / INACTIVE / BLOCKED"
+        timestamp created_at
+    }
+
+    DRIVER_PROFILES {
+        bigint id PK
+        bigint user_id FK
+        string license_number
+        string identity_card_number
+        string status "OFFLINE / READY / ON_TRIP / SUSPENDED"
+        decimal rating_avg
+        timestamp created_at
+    }
+
+    VEHICLES {
+        bigint id PK
+        bigint driver_id FK
+        string license_plate
+        string vehicle_type "4-SEATER / 7-SEATER / BIKE"
+        string model
+        string color
+    }
+
+    TRIPS {
+        bigint id PK
+        bigint customer_id FK
+        bigint driver_id FK
+        string pickup_address
+        decimal pickup_lat
+        decimal pickup_lng
+        string dropoff_address
+        decimal dropoff_lat
+        decimal dropoff_lng
+        decimal fare_amount
+        string status "PENDING / ACCEPTED / ARRIVED / IN_PROGRESS / COMPLETED / CANCELLED"
+        timestamp created_at
+        timestamp completed_at
+    }
+
+    PAYMENTS {
+        bigint id PK
+        bigint trip_id FK
+        decimal amount
+        string payment_method "CASH / E_WALLET / CREDIT_CARD"
+        string payment_status "PENDING
