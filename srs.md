@@ -81,12 +81,10 @@ quadrantChart
 
 ```mermaid
 flowchart TD
-    %% Nhóm Onboarding
     subgraph Onboarding [1. Khởi tạo & Định danh]
         P1([6.3. Quy trình Đăng ký & Xét duyệt Tài xế])
     end
 
-    %% Nhóm Chuyến đi
     subgraph CoreTrip [2. Vòng đời Chuyến đi Cốt lõi]
         P2([6.1. Luồng Đặt xe & Điều phối Tự động])
         P3([6.2. Luồng Thực hiện Chuyến đi & Thanh toán])
@@ -97,54 +95,52 @@ flowchart TD
         P3 -->|Phát sinh hủy mid-trip| P4
     end
 
-    %% Nhóm Vận hành & Tài chính
     subgraph Operations [3. Quản trị & Tài chính]
         P5([6.5. Quy trình Hỗ trợ & Can thiệp Vận hành])
         P6([6.6. Quy trình Đóng soát xét & Đối soát Doanh thu])
     end
 
-    %% Mối liên kết giữa các quy trình
     P1 -->|Tài xế sẵn sàng| P2
     P3 -->|Chuyến đi hoàn thành| P6
     
     CoreTrip -.->|Phát sinh sự cố/Giao dịch lỗi| P5
     P5 -.->|Điều chỉnh cước/Khóa tài khoản| P6
 ```
-
-### 6.2. Luồng Đặt xe & Điều phối Tự động
+### 6.2. Luồng Đặt xe & Điều phối Tự động (Core Booking & Matching)
 
 ```mermaid
 flowchart TD
-    Start([Khách hàng mở app & Nhập thông tin chuyến đi]) --> Request[Gửi yêu cầu đặt xe]
-    Request --> FindDriver[Hệ thống xác định vị trí GPS & Tìm tài xế gần nhất đang sẵn sàng]
+    Start([Khách hàng mở app & Nhập vị trí]) --> Request[Gửi yêu cầu đặt xe]
+    Request --> FindDriver[Hệ thống xác định GPS & Quét tài xế READY gần nhất]
     
     FindDriver --> CheckFound{Có tài xế phù hợp?}
     
-    CheckFound -- Không --> NotifyNoDriver[Thông báo không tìm thấy tài xế phù hợp]
+    CheckFound -- Không --> NotifyNoDriver[Thông báo không tìm thấy tài xế]
     NotifyNoDriver --> EndNoDriver([Kết thúc luồng đặt xe])
 
-    CheckFound -- Có --> SendOffer[Gửi thông báo nhận chuyến cho Tài xế - Có đếm ngược thời gian]
+    CheckFound -- Có --> SendOffer[Gửi thông báo nhận chuyến - Đếm ngược 15s]
     
     SendOffer --> DriverResponse{Tài xế phản hồi?}
     
-    DriverResponse -- Chấp nhận --> ConfirmBooking[Hệ thống xác nhận chuyến đi & Gửi thông tin tài xế cho Khách hàng]
+    DriverResponse -- Chấp nhận --> ConfirmBooking[Hệ thống xác nhận chuyến & Trả thông tin cho Khách]
     ConfirmBooking --> Transition[Chuyển sang Luồng Thực hiện chuyến đi]
 
-    DriverResponse -- Từ chối / Hết giờ --> ForwardNext[Tự động chuyển tiếp yêu cầu tới tài xế tiếp theo]
+    DriverResponse -- Từ chối / Hết giờ --> ForwardNext[Chuyển tiếp yêu cầu tới Tài xế tiếp theo]
     ForwardNext --> CheckFound
 ```
 
-### 6.3. Quy trình Thực hiện Chuyến đi & Thanh toán
+### 6.3. Luồng Thực hiện Chuyến đi & Thanh toán (Trip Execution & Payment)
+
 ```mermaid
 flowchart TD
-    Transition([Bắt đầu thực hiện chuyến đi]) --> DriverArrive[Tài xế cập nhật: Đã đến điểm đón]
-    DriverArrive --> NotifyArrived[Hệ thống gửi thông báo cho Khách hàng]
+    Transition([Chuyển từ Luồng Đặt xe]) --> DriverArrive[Tài xế cập nhật: Đã đến điểm đón]
+    DriverArrive --> NotifyArrived[Hệ thống gửi Push Notification cho Khách]
     
     NotifyArrived --> StartTrip[Tài xế cập nhật: Đã đón khách / Đang di chuyển]
     
     subgraph RealTimeTracking [Quá trình di chuyển]
-        StartTrip --> GPSUpdate[Tài xế gửi tọa độ GPS liên tục]
-        GPSUpdate --> ShowETA[Hệ thống cập nhật vị trí & ETA real-time cho Khách hàng]
+        StartTrip --> GPSUpdate[Tài xế gửi tọa độ GPS mỗi 3-5 giây]
+        GPSUpdate --> ShowETA[Hệ thống cập nhật vị trí & ETA real-time cho Khách]
     end
 
     ShowETA --> FinishTrip[Tài xế cập nhật: Hoàn thành chuyến đi]
@@ -155,17 +151,87 @@ flowchart TD
 
     PaymentMethod -- Thanh toán Điện tử --> Gateway[Gửi yêu cầu tới Cổng thanh toán]
     Gateway --> CheckPay{Thanh toán thành công?}
-    CheckPay -- Có --> IssueInvoice[Hệ thống gửi hóa đơn điện tử]
-    CheckPay -- Lỗi --> RetryPay[Xử lý lại / Yêu cầu chuyển sang tiền mặt]
+    CheckPay -- Có --> IssueInvoice[Hệ thống gửi Hóa đơn điện tử]
+    CheckPay -- Lỗi --> RetryPay[Cảnh báo lỗi / Yêu cầu chuyển sang tiền mặt]
     RetryPay --> PaymentMethod
 
-    PaymentMethod -- Tiền mặt --> CashPay[Khách hàng trả tiền mặt cho Tài xế]
+    PaymentMethod -- Tiền mặt --> CashPay[Khách trả tiền mặt cho Tài xế]
     CashPay --> ConfirmCash[Tài xế xác nhận đã nhận đủ tiền]
     ConfirmCash --> IssueInvoice
 
-    IssueInvoice --> Rating[Khách hàng đánh giá & phản hồi chất lượng dịch vụ]
+    IssueInvoice --> Rating[Khách hàng đánh giá rating/comment]
     Rating --> EndTrip([Kết thúc chuyến đi])
 ```
+
+### 6.4. Quy trình Đăng ký & Xét duyệt Tài xế (Driver Onboarding)
+
+```mermaid
+flowchart TD
+    StartReg([Tài xế tải ứng dụng & Đăng ký]) --> InputInfo[Nhập SĐT, Họ tên, Email]
+    InputInfo --> UploadDocs[Tải lên Bằng lái, Giấy tờ xe, Biển số xe]
+    UploadDocs --> Submit[Gửi hồ sơ xét duyệt]
+    
+    Submit --> AdminReview[NVVH / Admin kiểm tra hồ sơ]
+    
+    AdminReview --> CheckDocs{Hồ sơ hợp lệ?}
+    
+    CheckDocs -- Không --> Reject[Hệ thống gửi thông báo từ chối + Lý do bổ sung]
+    Reject --> UploadDocs
+
+    CheckDocs -- Có --> Approve[Admin bấm Phê duyệt tài khoản]
+    Approve --> ActivateProfile[Kích hoạt hồ sơ Tài xế trong DB]
+    ActivateProfile --> EnableReady[Tài xế có thể Bật trạng thái Sẵn sàng nhận chuyến]
+    EnableReady --> EndOnboard([Hoàn tất Onboarding])
+```
+
+### 6.5. Quy trình Hủy chuyến đi (Trip Cancellation)
+
+```mermaid
+flowchart TD
+    CancelTrigger([Khách hàng / Tài xế bấm Hủy chuyến]) --> CheckPhase{Chuyến đi đang ở trạng thái nào?}
+    
+    CheckPhase -- "ACCEPTED (< 2 phút)" --> FreeCancel[Hủy miễn phí]
+    
+    CheckPhase -- "ACCEPTED (> 2 phút) hoặc ARRIVED" --> PenaltyCheck{Ai là người hủy?}
+    
+    PenaltyCheck -- Khách hàng hủy --> FeeCustomer[Áp dụng phí phạt 10,000 VNĐ vào đơn sau]
+    PenaltyCheck -- Tài xế hủy --> FeeDriver[Trừ 2 điểm uy tín & Khóa nhận chuyến 15p]
+    
+    FeeCustomer --> CancelProcess[Hệ thống cập nhật chuyến sang CANCELLED]
+    FeeDriver --> CancelProcess
+    FreeCancel --> CancelProcess
+
+    CancelProcess --> ReleaseDriver[Giải phóng trạng thái Tài xế & Khách hàng]
+    ReleaseDriver --> EndCancel([Kết thúc luồng Hủy])
+```
+
+### 6.6. Quy trình Can thiệp & Hỗ trợ Vận hành (Ops Intervention & Support)
+
+```mermaid
+flowchart TD
+    Incident([Phát sinh sự cố: Mất kết nối, Tranh chấp, Xe hỏng]) --> SystemDetect{Nguồn phát hiện}
+    
+    SystemDetect -- Hệ thống tự động --> AutoAlert[Cảnh báo đỏ trên Admin Portal: Mất GPS > 3 phút]
+    SystemDetect -- Người dùng bấm Báo cáo --> TicketCreate[Tạo Ticket hỗ trợ khẩn cấp]
+    
+    AutoAlert --> OpsAssign[NVVH tiếp nhận case]
+    TicketCreate --> OpsAssign
+
+    OpsAssign --> CallVerify[NVVH gọi điện xác minh Khách / Tài xế]
+    
+    CallVerify --> ActionChoice{Hướng xử lý}
+    
+    ActionChoice -- Hủy chuyến bị kẹt --> ManualCancel[Bấm Hủy chuyến thủ công & Release tài khoản]
+    ActionChoice -- Điều chỉnh cước phí --> AdjustFare[Sửa cước phí thực tế trên Admin Portal]
+    ActionChoice -- Khóa tài khoản vi phạm --> LockAccount[Khóa tài khoản Tài xế/Khách hàng]
+
+    ManualCancel --> AuditLog[Ghi nhận nhật ký tác động Audit Log]
+    AdjustFare --> AuditLog
+    LockAccount --> AuditLog
+    
+    AuditLog --> CloseTicket([Đóng Ticket hỗ trợ])
+```
+
 ---
 ## 7. Functional Requirements (Yêu cầu Chức năng)
 
