@@ -405,49 +405,60 @@ erDiagram
 
 ```mermaid
 graph LR
-    %% Khai báo Actors
+    %% Actors
     KH["👤 Khách hàng"]
     TX["🚗 Tài xế"]
-    NVVH["💻 Nhân viên Vận hành"]
+    NVVH["💻 Nhân viên Vận hành / Admin"]
 
     subgraph CAB_System [Hệ thống CAB System]
-        %% Khách hàng Use Cases
-        UC01("(UC01: Đăng ký / Đăng nhập)")
-        UC02("(UC02: Tạo yêu cầu Đặt xe)")
-        UC03("(UC03: Theo dõi Chuyến đi & ETA)")
-        UC04("(UC04: Thanh toán Chuyến đi)")
-        UC05("(UC05: Đánh giá & Phản hồi)")
-        UC06("(UC06: Hủy chuyến đi)")
+        %% MOD01: Account & Auth
+        UC01("(UC01: Đăng ký, Đăng nhập & Phân quyền)")
+        UC02("(UC02: Quản lý Hồ sơ & Phương tiện)")
 
-        %% Tài xế Use Cases
-        UC07("(UC07: Bật/Tắt Trạng thái Sẵn sàng)")
-        UC08("(UC08: Nhận / Từ chối Chuyến)")
-        UC09("(UC09: Cập nhật Trạng thái Tiến trình)")
-        
-        %% Admin / Operator Use Cases
-        UC10("(UC10: Giám sát Chuyến đi Real-time)")
-        UC11("(UC11: Can thiệp & Xử lý Sự cố)")
-        UC12("(UC12: Xem Báo cáo & Thống kê)")
+        %% MOD02: Booking & Matching
+        UC03("(UC03: Tạo Yêu cầu Đặt xe)")
+        UC04("(UC04: Điều phối GPS & Nhận/Từ chối Chuyến)")
+
+        %% MOD03: Trip Management
+        UC05("(UC05: Cập nhật & Theo dõi Tiến trình Chuyến đi)")
+        UC06("(UC06: Hủy chuyến đi)")
+        UC07("(UC07: Tra cứu Lịch sử Chuyến đi)")
+
+        %% MOD04: Pricing & Payment
+        UC08("(UC08: Tính cước & Thanh toán Chuyến đi)")
+
+        %% MOD05: Notification & Rating
+        UC09("(UC09: Nhận Thông báo Push Notification)")
+        UC10("(UC10: Đánh giá & Phản hồi Chuyến đi)")
+
+        %% MOD06: Admin & Operations
+        UC11("(UC11: Giám sát Vận hành & Xem Báo cáo)")
+        UC12("(UC12: Quản lý Tài khoản & Can thiệp Hỗ trợ)")
     end
 
     %% Mối quan hệ Khách hàng
     KH --> UC01
     KH --> UC02
     KH --> UC03
-    KH --> UC04
     KH --> UC05
     KH --> UC06
+    KH --> UC07
+    KH --> UC08
+    KH --> UC09
+    KH --> UC10
 
     %% Mối quan hệ Tài xế
     TX --> UC01
+    TX --> UC02
+    TX --> UC04
+    TX --> UC05
+    TX --> UC06
     TX --> UC07
     TX --> UC08
     TX --> UC09
-    TX --> UC06
 
-    %% Mối quan hệ NVVH
+    %% Mối quan hệ NVVH / Admin
     NVVH --> UC01
-    NVVH --> UC10
     NVVH --> UC11
     NVVH --> UC12
 ```
@@ -458,56 +469,47 @@ graph LR
 
 | Mã FR | Tên Chức năng | Mã AC | Given (Điều kiện tiên quyết) | When (Hành động kích hoạt) | Then (Kết quả kỳ vọng) |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **FR01.1** | Đăng ký & Đăng nhập | **AC-FR01.1** | Người dùng nhập SĐT chưa đăng ký hoặc đã có tài khoản trên hệ thống. | Nhập mã OTP chính xác được gửi về SĐT. | System xác thực thành công, trả về JWT Token và đăng nhập người dùng vào ứng dụng theo đúng Role. |
-| **FR01.2** | Quản lý Hồ sơ Cá nhân | **AC-FR01.2** | Người dùng mở trang Thông tin cá nhân trên ứng dụng. | Chỉnh sửa Họ tên / Email / Ảnh đại diện và nhấn **"Lưu"**. | System cập nhật dữ liệu mới vào DB, hiển thị thông báo thành công và cập nhật UI ngay lập tức. |
-| **FR01.3** | Quản lý Hồ sơ Phương tiện | **AC-FR01.3** | Tài xế tải lên đầy đủ ảnh Bằng lái, Giấy tờ xe, Biển số xe. | Tài xế nhấn **"Gửi duyệt"**. | Hồ sơ chuyển sang trạng thái `PENDING_APPROVAL`, tài khoản Tài xế chưa thể bật trạng thái `READY` cho đến khi Admin duyệt. |
-| **FR01.4** | Phân quyền Truy cập (RBAC) | **AC-FR01.4** | Tài khoản có vai trò `OPERATOR` đăng nhập vào trang Admin Portal. | Cố gắng truy cập vào đường dẫn Cấu hình hệ thống dành riêng cho `ADMIN`. | System từ chối truy cập (HTTP 403 Forbidden) và hiển thị thông báo "Không có quyền thực thi". |
-| **FR02.1** | Tạo Yêu cầu Đặt xe | **AC-FR02.1** | Khách hàng nhập Điểm đón, Điểm đến và chọn loại dịch vụ (4 chỗ/7 chỗ/xe máy). | Khách hàng nhấn **"Đặt xe"**. | System khởi tạo chuyến đi trạng thái `PENDING`, hiển thị tuyến đường và cước phí tạm tính chính xác. |
-| **FR02.2** | Định vị GPS & Tìm xe | **AC-FR02.2** | Có yêu cầu đặt xe `PENDING` được khởi tạo. | System thực hiện thuật toán quét vị trí GPS. | Lọc và chọn danh sách các Tài xế đang `READY` trong bán kính 3km (mở rộng tối đa 5km nếu không có xe). |
-| **FR02.3** | Nhận / Từ chối Chuyến | **AC-FR02.3** | Tài xế nhận được popup thông báo chuyến đi kèm đếm ngược 15 giây. | Tài xế nhấn nút **"Chấp nhận"**. | Chuyến đi chuyển trạng thái `ACCEPTED`, khóa không cho tài xế khác nhận, gửi thông tin Tài xế cho Khách hàng. |
-| **FR02.4** | Tự động Chuyển tiếp | **AC-FR02.4** | Tài xế nhận thông báo chuyến đi nhưng không thao tác hoặc bấm "Từ chối". | Đồng hồ đếm ngược hết **15 giây** (Timeout) hoặc bấm nút **"Từ chối"**. | System tự động gửi đề xuất chuyến đi đó sang Tài xế tiếp theo trong danh sách mà không làm gián đoạn luồng đặt xe. |
-| **FR03.1** | Cập nhật Trạng thái | **AC-FR03.1** | Chuyến đi đang ở trạng thái `ACCEPTED`. | Tài xế bấm lần lượt các nút chuyển trạng thái trên App. | Trạng thái chuyến đi trong DB chuyển chính xác theo thứ tự: `ACCEPTED` $\rightarrow$ `ARRIVED` $\rightarrow$ `IN_PROGRESS` $\rightarrow$ `COMPLETED`. |
-| **FR03.2** | Theo dõi Real-time & ETA | **AC-FR03.2** | Chuyến đi ở trạng thái `IN_PROGRESS` (Đang di chuyển). | App Tài xế gửi tọa độ GPS định kỳ mỗi **3 - 5 giây**. | Biểu tượng xe di chuyển mượt mà trên bản đồ App Khách hàng; ETA và khoảng cách được tính toán lại liên tục. |
-| **FR03.3** | Hủy chuyến đi | **AC-FR03.3** | Chuyến đi ở trạng thái `ACCEPTED` (Tài xế đang đến đón) < 2 phút. | Khách hàng hoặc Tài xế nhấn **"Hủy chuyến"** và chọn lý do. | Chuyến đi chuyển trạng thái `CANCELLED`, giải phóng trạng thái cho cả 2 bên và áp dụng quy tắc phí phạt (nếu hủy muộn). |
-| **FR03.4** | Lịch sử Chuyến đi | **AC-FR03.4** | Người dùng truy cập vào mục "Lịch sử chuyến đi". | Người dùng chọn một chuyến đi cụ thể trong danh sách. | Hiển thị đầy đủ thông tin: Mã chuyến, Điểm đón/trả, Ngày giờ, Cước phí, Phương thức thanh toán và Trạng thái chuyến. |
-| **FR04.1** | Tự động Tính cước | **AC-FR04.1** | Chuyến đi kết thúc tại điểm trả khách. | Tài xế nhấn **"Hoàn thành chuyến đi"**. | System tự động tính tổng tiền = (Giá mở cửa + Giá/km * Số km thực tế + Phụ phí) và hiển thị trên App của cả 2 bên. |
-| **FR04.2** | Thanh toán Tiền mặt | **AC-FR04.2** | Chuyến đi hoàn thành và có phương thức thanh toán là `CASH`. | Tài xế nhận tiền mặt từ Khách và bấm **"Xác nhận đã nhận đủ tiền"**. | Chuyến đi chuyển trạng thái `COMPLETED`, `payment_status` = `SUCCESS`, hệ thống tự động trừ % chiết khấu vào ví Tài xế. |
-| **FR04.3** | Thanh toán Điện tử | **AC-FR04.3** | Chuyến đi hoàn thành và phương thức thanh toán là `E_WALLET` / `CREDIT_CARD`. | System gửi yêu cầu trừ tiền tới Payment Gateway. | Khi Cổng thanh toán trả về `SUCCESS`, chuyến đi chuyển `COMPLETED`, `payment_status` = `SUCCESS` và thông báo cho cả 2 bên. |
-| **FR04.4** | Xuất Hóa đơn Điện tử | **AC-FR04.4** | Chuyến đi có trạng thái `payment_status` = `SUCCESS`. | Giao dịch thanh toán hoàn tất thành công. | System tự động tạo Hóa đơn điện tử (e-receipt) gửi về App Khách hàng và Email đăng ký. |
-| **FR05.1** | Push Notification | **AC-FR05.1** | Trạng thái chuyến đi thay đổi (VD: `ARRIVED`, `COMPLETED`, `CANCELLED`). | Trigger sự kiện thay đổi trạng thái trong DB. | Push Notification tới thiết bị Khách hàng/Tài xế ngay lập tức với thời gian trễ (latency) < 1 giây. |
-| **FR05.2** | Thông báo SMS Backup | **AC-FR05.2** | Khách hàng yêu cầu gửi OTP hoặc thông báo quan trọng nhưng không nhận được Push. | Quá **30 giây** không ghi nhận sự kiện nhận Push/App offline. | System tự động kích hoạt kênh SMS Gateway để gửi tin nhắn thoại/SMS chứa mã OTP/thông báo đến SĐT Khách hàng. |
-| **FR06.1** | Giám sát Real-time | **AC-FR06.1** | Nhân viên vận hành mở màn hình "Giám sát Vận hành" trên Admin Portal. | Bản đồ hiển thị toàn bộ các chuyến đi đang diễn ra. | Hiển thị chính xác vị trí, trạng thái của từng chuyến đi và chuyển màu cảnh báo đỏ đối với các chuyến rớt kết nối > 3 phút. |
-| **FR06.2** | Can thiệp & Hỗ trợ | **AC-FR06.2** | Nhân viên chọn một chuyến đi bị kẹt/lỗi trên màn hình Giám sát. | Nhập lý do và bấm **"Hủy chuyến thủ công"** hoặc **"Gán lại tài xế"**. | Trạng thái chuyến đi cập nhật lập tức, giải phóng tài khoản cho Khách/Tài xế và ghi nhận chi tiết vào `Audit Log`. |
-| **FR06.3** | Báo cáo Thống kê | **AC-FR06.3** | Admin chọn mốc thời gian (Từ ngày... Đến ngày...) và loại báo cáo Doanh thu/Hiệu suất. | Admin nhấn nút **"Xuất Báo cáo"** (Excel/PDF). | System tổng hợp dữ liệu, xuất file báo cáo chính xác con số tổng cước, chiết khấu, số chuyến hoàn thành và tỷ lệ hủy. |
-| **FR06.4** | Quản lý Đánh giá | **AC-FR06.4** | Khách hàng gửi Rating (1-5 sao) và Comment sau chuyến đi. | Khách hàng nhấn **"Gửi đánh giá"**. | Điểm rating được tính lại vào điểm trung bình (`rating_avg`) của Tài xế; nếu Rating $\le 2$ sao, tạo tự động 1 ticket hỗ trợ trên Admin Portal. |
-
+| **FR01.1** | Đăng ký, Đăng nhập & Phân quyền | **AC-FR01.1a** | Người dùng nhập SĐT chính xác trên giao diện Đăng ký/Đăng nhập. | Nhấn nút "Gửi mã OTP". | Hệ thống gửi mã OTP xác thực qua SMS/Notification thành công trong vòng 5 giây. |
+| | | **AC-FR01.1b** | Mã OTP đã được gửi đến thiết bị người dùng. | Người dùng nhập mã OTP hợp lệ và nhấn "Xác nhận". | Hệ thống xác thực thành công, trả về JWT Token và đăng nhập người dùng vào đúng giao diện theo Role (Customer/Driver/Admin). |
+| **FR01.2** | Quản lý Hồ sơ & Phương tiện | **AC-FR01.2a** | Khách hàng/Tài xế đã đăng nhập và mở trang Thông tin cá nhân. | Thay đổi thông tin (Họ tên, Email, Avatar) và nhấn "Lưu thay đổi". | Dữ liệu hồ sơ trong DB được cập nhật thành công và hiển thị ngay trên giao diện. |
+| | | **AC-FR01.2b** | Tài xế đăng tải đầy đủ hình ảnh Bằng lái, Giấy tờ xe và Biển số xe. | Tài xế nhấn "Gửi hồ sơ xét duyệt". | Trạng thái tài khoản chuyển thành `PENDING_APPROVAL`; tài xế chưa thể bật trạng thái Sẵn sàng cho đến khi Admin phê duyệt. |
+| **FR02.1** | Tạo Yêu cầu Đặt xe | **AC-FR02.1** | Khách hàng chọn xong Điểm đón, Điểm đến và loại phương tiện. | Khách hàng nhấn nút "Đặt xe". | Hệ thống tạo chuyến đi ở trạng thái `PENDING`, hiển thị đúng bản đồ lộ trình và cước phí tạm tính. |
+| **FR02.2** | Định vị GPS & Điều phối Chuyến | **AC-FR02.2a** | Có chuyến đi mới ở trạng thái `PENDING`. | Thuật toán điều phối của hệ thống được kích hoạt. | Hệ thống quét bán kính 3km (mở rộng tối đa 5km) và gửi thông báo nhận chuyến kèm đếm ngược 15s tới Tài xế Sẵn sàng gần nhất. |
+| | | **AC-FR02.2b** | Tài xế nhận đề xuất chuyến đi nhưng không bấm chọn hoặc từ chối sau 15s. | Đồng hồ đếm ngược chạm mốc 0s hoặc Tài xế bấm "Từ chối". | Hệ thống tự động chuyển tiếp yêu cầu đặt xe tới tài xế phù hợp tiếp theo trong danh sách. |
+| **FR03.1** | Cập nhật & Theo dõi Chuyến đi | **AC-FR03.1a** | Tài xế đã chấp nhận chuyến đi (`ACCEPTED`). | Tài xế nhấn lần lượt các nút trạng thái trên App. | Trạng thái chuyến đi trong hệ thống cập nhật đúng tiến trình: `ARRIVED` (Đã đến) $\rightarrow$ `IN_PROGRESS` (Đã đón/Đang di chuyển) $\rightarrow$ `COMPLETED` (Hoàn thành). |
+| | | **AC-FR03.1b** | Chuyến đi đang ở trạng thái `IN_PROGRESS`. | App Tài xế truyền dữ liệu GPS định kỳ mỗi 3–5 giây. | Giao diện Khách hàng hiển thị chính xác vị trí tài xế di chuyển mượt mà trên bản đồ kèm ETA cập nhật liên tục. |
+| **FR03.2** | Hủy chuyến đi | **AC-FR03.2** | Chuyến đi ở trạng thái `PENDING` hoặc `ACCEPTED`. | Khách hàng hoặc Tài xế nhấn "Hủy chuyến" và chọn lý do hủy. | Chuyến đi chuyển trạng thái `CANCELLED`, giải phóng trạng thái sẵn sàng cho các bên và áp dụng chính sách phí phạt hủy chuyến (nếu có). |
+| **FR03.3** | Lịch sử Chuyến đi | **AC-FR03.3** | Người dùng truy cập tab "Lịch sử chuyến đi". | Chọn một chuyến đi bất kỳ trong danh sách. | Màn hình hiển thị đầy đủ thông tin: Mã chuyến, Điểm đón/trả, Ngày giờ, Giá tiền, Phương thức thanh toán và Trạng thái chuyến. |
+| **FR04.1** | Tự động Tính cước & Thanh toán | **AC-FR04.1a** | Tài xế nhấn "Hoàn thành chuyến đi" tại điểm đến. | Hệ thống chốt quãng đường di chuyển thực tế. | Tổng cước phí được tự động tính toán chính xác theo công thức và hiển thị lên màn hình của cả Khách hàng và Tài xế. |
+| | | **AC-FR04.1b** | Khách hàng chọn thanh toán Tiền mặt hoặc Thanh toán qua Cổng điện tử. | Tài xế xác nhận nhận tiền mặt HOẶC Cổng thanh toán trả kết quả giao dịch thành công. | Trạng thái thanh toán chuyển thành `PAID`, hệ thống trích xuất % chiết khấu tài xế và gửi hóa đơn điện tử cho khách hàng. |
+| **FR05.1** | Push Notification | **AC-FR05.1** | Trạng thái chuyến đi có sự thay đổi (đã nhận chuyến, đã đến, hoàn thành, hủy chuyến). | Sự kiện thay đổi trạng thái phát sinh trên server. | Thiết bị của Khách hàng/Tài xế nhận được Push Notification tương ứng tức thì với độ trễ dưới 2 giây. |
+| **FR05.2** | Đánh giá Chuyến đi | **AC-FR05.2** | Chuyến đi hoàn thành (`COMPLETED`) và khách hàng mở màn hình Đánh giá. | Khách hàng chọn số sao (1-5) và nhập nhận xét rồi bấm "Gửi". | Điểm đánh giá được ghi nhận vào DB, tính lại điểm `rating_avg` cho Tài xế; nếu đánh giá $\le$ 2 sao, hệ thống tự động tạo cảnh báo hỗ trợ. |
+| **FR06.1** | Giám sát & Báo cáo Vận hành | **AC-FR06.1a** | NVVH mở màn hình "Giám sát Vận hành" trên Admin Portal. | Đăng nhập hệ thống quản trị. | Bản đồ hiển thị toàn bộ các chuyến đi đang diễn ra theo thời gian thực và tự động cảnh báo đỏ đối với các chuyến mất GPS trên 3 phút. |
+| | | **AC-FR06.1b** | Admin chọn khoảng thời gian báo cáo và bấm "Xuất báo cáo". | Yêu cầu kết xuất báo cáo được gửi. | Hệ thống tạo và tải xuống file (Excel/PDF) thống kê chi tiết tổng doanh thu, số lượng chuyến đi, tỷ lệ hủy và chiết khấu. |
+| **FR06.2** | Khóa/Mở tài khoản & Hỗ trợ | **AC-FR06.2** | Quản trị viên chọn một tài khoản tài xế vi phạm hoặc một chuyến đi đang gặp sự cố/kẹt. | Thực hiện hành động "Khóa tài khoản" hoặc "Hủy chuyến thủ công" kèm nhập lý do. | Trạng thái tài khoản/chuyến đi được cập nhật lập tức, thông báo gửi tới người dùng và toàn bộ thao tác được lưu vết vào Audit Log. |
 ---
+
 ## 13. Traceability Matrix (Bảng Truy vết Nghiệp vụ & Kỹ thuật)
 
 Bảng truy vết đảm bảo tính khép kín và nhất quán từ Mục tiêu Kinh doanh (BG) cho đến Tiêu chí Nghiệm thu (AC):
 
-| Mã BG | Mã BR | Mã BPM (Luồng Quy trình) | Mã FR | Mã UC | Mã AC |
+| Mã BG | Mã BR | Mã BPM (Quy trình) | Mã FR | Mã UC | Mã AC |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **BG01** | **BR02** | **BPM6.1** (Đặt xe & Điều phối) | **FR02.2** | UC02 | **AC-FR02.2** |
-| | | | **FR02.4** | UC08 | **AC-FR02.4** |
-| **BG02** | **BR02** | **BPM6.1** (Đặt xe & Điều phối) | **FR02.1** | UC02 | **AC-FR02.1** |
-| | | | **FR02.3** | UC08 | **AC-FR02.3** |
-| | **BR03** | **BPM6.4** (Quy trình Hủy chuyến) | **FR03.3** | UC06 | **AC-FR03.3** |
-| **BG03** | **BR03** | **BPM6.2** (Thực hiện Chuyến đi) | **FR03.1** | UC09 | **AC-FR03.1** |
-| | | **BPM6.2** (Thực hiện Chuyến đi) | **FR03.2** | UC03 | **AC-FR03.2** |
-| | | **BPM6.2** (Thực hiện Chuyến đi) | **FR03.4** | UC03 | **AC-FR03.4** |
-| | **BR04** | **BPM6.2** (Thực hiện & Thanh toán) | **FR04.3** | UC04 | **AC-FR04.3** |
-| | | **BPM6.2** (Thực hiện & Thanh toán) | **FR04.4** | UC04 | **AC-FR04.4** |
-| **BG04** | **BR01** | **BPM6.3** (Onboarding Tài xế) | **FR01.3** | UC01 | **AC-FR01.3** |
-| | **BR02** | **BPM6.1** (Đặt xe & Điều phối) | **FR02.3** | UC07, UC08 | **AC-FR02.3** |
-| | **BR04** | **BPM6.2** (Thực hiện & Thanh toán) | **FR04.1** | UC09 | **AC-FR04.1** |
-| | | **BPM6.2** (Thực hiện & Thanh toán) | **FR04.2** | UC04 | **AC-FR04.2** |
-| **BG05** | **BR01** | **BPM6.3** (Onboarding Tài xế) | **FR01.4** | UC01 | **AC-FR01.4** |
-| | **BR05** | **BPM6.5** (Can thiệp Vận hành) | **FR06.1** | UC10 | **AC-FR06.1** |
-| | | **BPM6.5** (Can thiệp Vận hành) | **FR06.2** | UC11 | **AC-FR06.2** |
-| | **BR06** | **BPM6.6** (Đối soát Doanh thu) | **FR06.3** | UC12 | **AC-FR06.3** |
-| | | **BPM6.2** (Thực hiện Chuyến đi) | **FR06.4** | UC05 | **AC-FR06.4** |
-| **BG06** | **BR01** | **BPM6.3** (Onboarding Tài xế) | **FR01.1** | UC01 | **AC-FR01.1** |
-| | | **BPM6.3** (Onboarding Tài xế) | **FR01.2** | UC01 | **AC-FR01.2** |
-| | **BR04** | **BPM6.1, BPM6.2** (Toàn bộ các luồng) | **FR05.1** | UC03, UC09 | **AC-FR05.1** |
-| | | **BPM6.1, BPM6.2** (Toàn bộ các luồng) | **FR05.2** | UC01 | **AC-FR05.2** |
+| **BG01** | **BR01** | **BPM6.4** (Onboarding) | **FR01.1** | UC01 | **AC-FR01.1a, AC-FR01.1b** |
+| | **BR02** | **BPM6.1** (Đặt xe & Điều phối) | **FR02.2** | UC04 | **AC-FR02.2a, AC-FR02.2b** |
+| **BG02** | **BR02** | **BPM6.1** (Đặt xe & Điều phối) | **FR02.1** | UC03 | **AC-FR02.1** |
+| | | **BPM6.1** (Đặt xe & Điều phối) | **FR02.2** | UC04 | **AC-FR02.2a, AC-FR02.2b** |
+| | **BR03** | **BPM6.5** (Hủy chuyến) | **FR03.2** | UC06 | **AC-FR03.2** |
+| **BG03** | **BR03** | **BPM6.2** (Thực hiện chuyến) | **FR03.1** | UC05 | **AC-FR03.1a, AC-FR03.1b** |
+| | | **BPM6.2** (Thực hiện chuyến) | **FR03.3** | UC07 | **AC-FR03.3** |
+| | **BR04** | **BPM6.2** (Thực hiện & Thanh toán) | **FR04.1** | UC08 | **AC-FR04.1a, AC-FR04.1b** |
+| | **BR06** | **BPM6.2** (Thực hiện chuyến) | **FR05.2** | UC10 | **AC-FR05.2** |
+| **BG04** | **BR01** | **BPM6.4** (Onboarding) | **FR01.2** | UC02 | **AC-FR01.2a, AC-FR01.2b** |
+| | **BR02** | **BPM6.1** (Đặt xe & Điều phối) | **FR02.2** | UC04 | **AC-FR02.2a** |
+| | **BR03** | **BPM6.2** (Thực hiện chuyến) | **FR03.1** | UC05 | **AC-FR03.1a** |
+| | **BR04** | **BPM6.2** (Thực hiện & Thanh toán) | **FR04.1** | UC08 | **AC-FR04.1a, AC-FR04.1b** |
+| **BG05** | **BR05** | **BPM6.6** (Can thiệp & Vận hành) | **FR06.1** | UC11 | **AC-FR06.1a** |
+| | | **BPM6.6** (Can thiệp & Vận hành) | **FR06.2** | UC12 | **AC-FR06.2** |
+| | **BR06** | **BPM6.6** (Đối soát & Báo cáo) | **FR06.1** | UC11 | **AC-FR06.1b** |
+| **BG06** | **BR01** | **BPM6.4** (Onboarding) | **FR01.1** | UC01 | **AC-FR01.1a, AC-FR01.1b** |
+| | **BR02, BR03** | **BPM6.1, BPM6.2** (Các luồng chính) | **FR05.1** | UC09 | **AC-FR05.1** |
