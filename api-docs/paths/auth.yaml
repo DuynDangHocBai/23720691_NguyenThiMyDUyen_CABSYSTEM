@@ -1,0 +1,41 @@
+login:
+  post:
+    tags:
+      - MOD01 - Account & Auth
+    summary: Đăng nhập & Xác thực OTP / Mật khẩu (FR01.1)
+    security: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - phone_number
+            properties:
+              phone_number:
+                type: string
+                example: "+84901234567"
+              otp_code:
+                type: string
+                example: "123456"
+              password:
+                type: string
+                example: "Password123!"
+    responses:
+      '200':
+        description: Đăng nhập thành công, trả về JWT Token
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                access_token:
+                  type: string
+                token_type:
+                  type: string
+                  example: "Bearer"
+                user:
+                  $ref: '../components/schemas/User.yaml'
+      '401':
+        description: OTP hoặc mật khẩu không chính xác
