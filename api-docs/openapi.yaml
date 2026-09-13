@@ -1,0 +1,80 @@
+openapi: 3.0.3
+info:
+  title: CAB System API Specification
+  description: API đặc tả chuẩn OpenAPI 3.0 cho Hệ thống Đặt xe và Vận hành CAB.
+  version: 1.0.0
+servers:
+  - url: https://api.cab-system.com/v1
+    description: Production Server
+  - url: https://staging-api.cab-system.com/v1
+    description: Staging Server
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: MOD01 - Account & Auth
+  - name: MOD01 - Vehicles
+  - name: MOD02/03 - Trip Management
+  - name: MOD04 - Pricing & Payment
+  - name: MOD05 - Ratings & Feedback
+  - name: MOD06 - Admin & Operations
+
+paths:
+  /auth/login:
+    $ref: './paths/auth.yaml#/login'
+  /users/me:
+    $ref: './paths/users.yaml#/me'
+  /users/{id}:
+    $ref: './paths/users.yaml#/user_by_id'
+  /drivers/profile:
+    $ref: './paths/users.yaml#/driver_profile'
+  /drivers/status:
+    $ref: './paths/users.yaml#/driver_status'
+  /vehicles:
+    $ref: './paths/vehicles.yaml#/vehicles'
+  /vehicles/{id}:
+    $ref: './paths/vehicles.yaml#/vehicle_by_id'
+  /trips:
+    $ref: './paths/trips.yaml#/trips'
+  /trips/{trip_id}:
+    $ref: './paths/trips.yaml#/trip_by_id'
+  /trips/{trip_id}/respond:
+    $ref: './paths/trips.yaml#/trip_respond'
+  /trips/{trip_id}/status:
+    $ref: './paths/trips.yaml#/trip_status'
+  /trips/{trip_id}/cancel:
+    $ref: './paths/trips.yaml#/trip_cancel'
+  /trips/{trip_id}/pay:
+    $ref: './paths/payments.yaml#/trip_pay'
+  /payments/{payment_id}:
+    $ref: './paths/payments.yaml#/payment_by_id'
+  /trips/{trip_id}/rate:
+    $ref: './paths/ratings.yaml#/trip_rate'
+  /drivers/{driver_id}/ratings:
+    $ref: './paths/ratings.yaml#/driver_ratings'
+  /ratings/{rating_id}:
+    $ref: './paths/ratings.yaml#/rating_by_id'
+  /admin/trips/monitor:
+    $ref: './paths/admin.yaml#/trips_monitor'
+  /admin/reports/analytics:
+    $ref: './paths/admin.yaml#/reports_analytics'
+
+components:
+  securitySchemes:
+    $ref: './components/security.yaml'
+  schemas:
+    User:
+      $ref: './components/schemas/User.yaml'
+    DriverProfile:
+      $ref: './components/schemas/DriverProfile.yaml'
+    VehicleInput:
+      $ref: './components/schemas/Vehicle.yaml#/VehicleInput'
+    Vehicle:
+      $ref: './components/schemas/Vehicle.yaml#/Vehicle'
+    Trip:
+      $ref: './components/schemas/Trip.yaml'
+    Payment:
+      $ref: './components/schemas/Payment.yaml'
+    Rating:
+      $ref: './components/schemas/Rating.yaml'
