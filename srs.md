@@ -235,61 +235,58 @@ flowchart TD
 ---
 ## 7. Functional Requirements (Yêu cầu Chức năng)
 
-Dưới đây là danh sách chi tiết các Yêu cầu Chức năng (FR) được phân chia theo 6 Module MVP của hệ thống CAB System.
 
 ### 7.1. MOD01 - Module Quản lý Tài khoản & Định danh (Account & Auth)
 
 | ID | Tên Chức năng | Đối tượng | Mô tả Chi tiết | Yêu cầu Nghiệp vụ |
 | :--- | :--- | :--- | :--- | :--- |
-| **FR01.1** | Đăng ký & Đăng nhập | KH, TX | Cho phép người dùng đăng ký, đăng nhập bằng Số điện thoại/OTP hoặc Email/Mật khẩu. | BR01 |
-| **FR01.2** | Quản lý Hồ sơ Cá nhân | KH, TX | Cho phép xem và cập nhật thông tin cá nhân (Họ tên, Ảnh đại diện, Email, Số điện thoại). | BR01 |
-| **FR01.3** | Quản lý Hồ sơ Phương tiện | TX | Cho phép Tài xế tải lên và cập nhật giấy tờ xe, bằng lái, biển số xe và loại xe. | BR01 |
-| **FR01.4** | Phân quyền Truy cập (RBAC) | NVVH, ADMIN | Áp dụng phân quyền chặt chẽ theo vai trò (Role-based Access Control) cho Nhân viên vận hành và Admin. | BR01 |  
+| **FR01.1** | Đăng ký, Đăng nhập & Phân quyền | KH, TX, NVVH | Cho phép người dùng đăng ký, đăng nhập bằng SĐT/OTP hoặc Email/Mật khẩu; tự động phân quyền theo vai trò (Customer, Driver, Admin). | BR01 |
+| **FR01.2** | Quản lý Hồ sơ & Phương tiện | KH, TX | Khách hàng và Tài xế xem/cập nhật thông tin cá nhân; Tài xế tải lên giấy tờ xe, bằng lái và biển số xe để xét duyệt. | BR01 |
 
-### 7.2. MOD02 - Module Đặt xe & Phân công (Booking & Matching)
+---
+
+### 7.2. MOD02 - Module Đặt xe & Điều phối (Booking & Matching)
 
 | ID | Tên Chức năng | Đối tượng | Mô tả Chi tiết | Yêu cầu Nghiệp vụ |
 | :--- | :--- | :--- | :--- | :--- |
-| **FR02.1** | Tạo Yêu cầu Đặt xe | KH | Cho phép Khách hàng chọn điểm đón/điểm đến trên bản đồ, chọn loại dịch vụ và tạo chuyến đi. | BR02 |
-| **FR02.2** | Định vị GPS & Tìm xe | Hệ thống | Tự động xác định tọa độ GPS, tìm kiếm và đề xuất các Tài xế đang ở trạng thái "Sẵn sàng" gần nhất. | BR02 |
-| **FR02.3** | Nhận / Từ chối Chuyến | TX | Gửi thông báo nhận chuyến tới Tài xế với đếm ngược thời gian; cho phép Tài xế bấm Chấp nhận hoặc Từ chối. | BR02 |
-| **FR02.4** | Tự động Chuyển tiếp | Hệ thống | Tự động điều phối yêu cầu sang Tài xế tiếp theo nếu Tài xế trước từ chối hoặc hết thời gian phản hồi (Timeout). | BR02 |
+| **FR02.1** | Tạo Yêu cầu Đặt xe | KH | Cho phép Khách hàng chọn điểm đón/điểm đến trên bản đồ, xem trước giá cước, chọn loại dịch vụ và tạo chuyến đi. | BR02 |
+| **FR02.2** | Định vị GPS & Điều phối Chuyến | Hệ thống, TX | Tự động quét tìm Tài xế "Sẵn sàng" gần nhất; gửi thông báo kèm đếm ngược 15s để Tài xế bấm Chấp nhận/Từ chối hoặc tự động chuyển tiếp. | BR02 |
+
+---
 
 ### 7.3. MOD03 - Module Quản lý Tiến trình Chuyến đi (Trip Management)
 
 | ID | Tên Chức năng | Đối tượng | Mô tả Chi tiết | Yêu cầu Nghiệp vụ |
 | :--- | :--- | :--- | :--- | :--- |
-| **FR03.1** | Cập nhật Trạng thái | TX | Cho phép Tài xế chuyển đổi các mốc trạng thái chuyến đi (*Đã đến điểm đón*, *Đã đón khách*, *Đang di chuyển*, *Hoàn thành*). | BR03 |
-| **FR03.2** | Theo dõi Real-time & ETA | KH | Hiển thị vị trí thực của Tài xế di chuyển trên bản đồ và cập nhật thời gian dự kiến đến (ETA) liên tục. | BR03 |
-| **FR03.3** | Hủy chuyến đi | KH, TX | Cho phép Khách hàng hoặc Tài xế gửi yêu cầu hủy chuyến đi kèm lý do cụ thể theo quy tắc nghiệp vụ. | BR03 |
-| **FR03.4** | Lịch sử Chuyến đi | KH, TX | Cho phép tra cứu danh sách các chuyến đi đã thực hiện (thời gian, lộ trình, cước phí, trạng thái). | BR01, BR03 |
+| **FR03.1** | Cập nhật & Theo dõi Chuyến đi | KH, TX | Tài xế cập nhật các mốc trạng thái (*Đã đến*, *Đang di chuyển*, *Hoàn thành*); Khách hàng theo dõi vị trí xe thời gian thực (Real-time) trên bản đồ. | BR03 |
+| **FR03.2** | Hủy chuyến đi | KH, TX | Cho phép Khách hàng hoặc Tài xế hủy chuyến kèm chọn lý do theo chính sách và phí phạt nghiệp vụ. | BR03 |
+| **FR03.3** | Lịch sử Chuyến đi | KH, TX | Cho phép tra cứu danh sách các chuyến đi đã thực hiện (thời gian, lộ trình, cước phí, trạng thái). | BR01, BR03 |
+
+---
 
 ### 7.4. MOD04 - Module Tính cước & Thanh toán (Pricing & Payment)
 
 | ID | Tên Chức năng | Đối tượng | Mô tả Chi tiết | Yêu cầu Nghiệp vụ |
 | :--- | :--- | :--- | :--- | :--- |
-| **FR04.1** | Tự động Tính cước | Hệ thống | Tính toán tổng tiền chuyến đi dựa trên khoảng cách, thời gian di chuyển, loại dịch vụ và phụ phí (nếu có). | BR04 |
-| **FR04.2** | Thanh toán Tiền mặt | KH, TX | Cho phép Khách hàng trả tiền mặt trực tiếp và Tài xế bấm xác nhận đã nhận đủ tiền trên app. | BR04 |
-| **FR04.3** | Thanh toán Điện tử | KH, Hệ thống | Tích hợp Cổng thanh toán (Payment Gateway) cho phép Khách hàng thanh toán qua Ví điện tử/Thẻ/Banking. | BR04 |
-| **FR04.4** | Xuất Hóa đơn Điện tử | Hệ thống | Tự động tạo và gửi hóa đơn/biên nhận thanh toán điện tử cho Khách hàng qua ứng dụng hoặc Email. | BR04 |
+| **FR04.1** | Tự động Tính cước & Thanh toán | KH, TX, Hệ thống | Tự động tính cước dựa trên khoảng cách và loại xe; hỗ trợ thanh toán bằng Tiền mặt (tài xế xác nhận) hoặc qua Cổng thanh toán điện tử. | BR04 |
 
+---
 
-### 7.5. MOD05 - Module Thông báo (Notification)
+### 7.5. MOD05 - Module Thông báo & Đánh giá (Notification & Feedback)
 
 | ID | Tên Chức năng | Đối tượng | Mô tả Chi tiết | Yêu cầu Nghiệp vụ |
 | :--- | :--- | :--- | :--- | :--- |
-| **FR05.1** | Inform Push Notification | KH, TX | Gửi thông báo đẩy (Push) tức thì theo thời gian thực tới app khi trạng thái chuyến đi thay đổi. | BR02, BR03 |
-| **FR05.2** | Thông báo SMS Backup | KH | Gửi mã OTP đăng nhập hoặc thông báo quan trọng qua SMS trong trường hợp không nhận được Push. | BR01, BR03 |
+| **FR05.1** | Push Notification | KH, TX | Gửi thông báo đẩy (Push) thời gian thực tới App khi chuyến đi có thay đổi trạng thái hoặc nhận thông báo từ hệ thống. | BR02, BR03 |
+| **FR05.2** | Đánh giá Chuyến đi | KH | Cho phép Khách hàng chấm điểm (1–5 sao) và gửi phản hồi/nhận xét về Tài xế sau khi hoàn tất chuyến đi. | BR06 |
 
+---
 
-### 7.6. MOD06 - Module Vận hành & Báo cáo (Admin & Analytics)
+### 7.6. MOD06 - Module Vận hành & Quản trị (Admin & Operations)
 
 | ID | Tên Chức năng | Đối tượng | Mô tả Chi tiết | Yêu cầu Nghiệp vụ |
 | :--- | :--- | :--- | :--- | :--- |
-| **FR06.1** | Giám sát Chuyến đi Real-time| NVVH | Cung cấp màn hình bản đồ trực quan theo dõi toàn bộ các chuyến đi đang diễn ra và vị trí các Tài xế. | BR05 |
-| **FR06.2** | Can thiệp & Hỗ trợ Vận hành| NVVH | Cho phép Nhân viên vận hành hủy chuyến kẹt, gán lại tài xế, điều chỉnh cước phí lỗi hoặc khóa tài khoản vi phạm. | BR05 |
-| **FR06.3** | Báo cáo Thống kê Doanh thu | ADMIN, BGD | Xuất báo cáo tổng quan/chi tiết về doanh thu, số lượng chuyến, tỷ lệ hoàn thành/hủy và chiết khấu theo ngày/tần/tháng. | BR06 |
-| **FR06.4** | Quản lý Đánh giá & Phản hồi | NVVH, ADMIN | Quản lý rating/comment của Khách hàng về Tài xế để xử lý khiếu nại và nâng cao chất lượng dịch vụ. | BR06 |
+| **FR06.1** | Giám sát & Báo cáo Vận hành | NVVH, ADMIN | Màn hình trực quan theo dõi các chuyến đi đang diễn ra, thống kê số lượng chuyến đi và báo cáo doanh thu/chiết khấu cơ bản. | BR05, BR06 |
+| **FR06.2** | Khóa/Mở tài khoản & Hỗ trợ | NVVH, ADMIN | Cho phép quản trị viên duyệt/khóa tài khoản tài xế, can thiệp hủy chuyến kẹt hoặc xử lý các sự cố phát sinh. | BR05 |
 
 ---
 ## 8. Business Rules & Exception Handling (Quy tắc Nghiệp vụ & Xử lý Ngoại lệ)
